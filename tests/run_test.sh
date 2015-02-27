@@ -18,19 +18,37 @@ export TEST_ROOT=$BUILDROOT/$1
 mkdir -p $TEST_ROOT
 
 function bail() {
-    set +eu
+    set +xeu
     local e=$1 ; shift
-    if [[ $e != 0 ]] ; then
-        echo >&5 "${FUNCNAME[1]^^} - $TEST_NAME${1:+ [$*]}"
+    local p="${FUNCNAME[1]^^} - $TEST_NAME${1:+ [$*]}"
+    local debug_line=$(tail -9 $TEST_ROOT/debug | head -1 | sed 's?^+\+ ??')
+
+    {
+
+    echo "$p"
+
+    if [[ $e != 0 || ${TEST_DEBUG:-} == 1 ]] ; then
         if [[ ${TEST_DEBUG:-} ]] ; then
-            cat >&5 $TEST_ROOT/debug
+            echo "$p: DEBUG_BEG:"
+            cat $TEST_ROOT/debug
+            echo "$p: DEBUG_END:"
         fi
-        cat >&5 $TEST_ROOT/stdout $TEST_ROOT/stderr
-    elif [[ ${TEST_DEBUG:-} ]] ; then
-        echo >&5 "${FUNCNAME[1]^^} - $TEST_NAME${1:+ [$*]}"
-        cat >&5 $TEST_ROOT/debug $TEST_ROOT/stdout $TEST_ROOT/stderr
+
+        if [[ -s $TEST_ROOT/output ]] ; then
+            echo "$p: OUTPUT_BEG:"
+            cat $TEST_ROOT/output
+            echo "$p: OUTPUT_END:"
+        fi
     fi
-    echo >&5 "${FUNCNAME[1]^^} - $TEST_NAME${1:+ [$*]}"
+
+    echo
+    echo "    >>>   ${TEST_STATEMENT:-Unknown error}   <<<"
+    echo "    >>>   $debug_line   <<<"
+    echo
+    echo "$p"
+
+    } >&5
+
     exit $e
 }
 
@@ -40,49 +58,45 @@ function skip() { bail 0 "$@" ; }
 function pass() { bail 0 "$@" ; }
 
 function setup() {
-    trap "err 'Setup error'" ERR
     if [[ -f $TEST_SETUP ]] ; then
+        TEST_SETUP_RUN=1
+
         . $TEST_SETUP
     fi
 }
 
-function teardown() {
+function end_test() {
     if [[ $TEST_RESULT == 0 ]] ; then
         ( pass ) || true
     else
-        ( fail "Test failure" ) || true
+        ( fail "$TEST_SECTION failure" ) || true
     fi
 
-    section "Teardown"
     if [[ -f $TEST_TEARDOWN ]] ; then
-        . $TEST_TEARDOWN
+        ( . $TEST_TEARDOWN ) || fail "Teardown failure"
     fi
 
     exit $TEST_RESULT
 }
 
 function section() {
-    set +x
-    exec 1>&- 2>&- 3>&-
-    trap "err '$1 error'" ERR
-    exec 1>$TEST_ROOT/stdout 2>$TEST_ROOT/stderr 3>$TEST_ROOT/debug
-    set -x
+    TEST_SECTION=$1
 }
 
-exec 5>&1
+exec 5>&1 1>$TEST_ROOT/stdout 2>$TEST_ROOT/stderr 3>$TEST_ROOT/debug
+
 BASH_XTRACEFD=3
 set -x
 
 section "Initlisation"
 
-cd $TEST_ROOT
-
-# The path to the local CVS repository should have been set.
-[[ -d $CVSROOT ]]
-
 TEST_RESULT=1
+TEST_SETUP_RUN=
 
-trap "teardown" EXIT
+trap 'e=$? ; TEST_STATEMENT=$BASH_COMMAND ; exit $e' ERR
+trap 'end_test $?' EXIT
+
+cd $TEST_ROOT
 
 section "Setup"
 setup

@@ -10,6 +10,7 @@ debug:
 	@true
 
 export BUILDROOT:= $(shell readlink -m BUILDROOT)
+export PATH:= $(shell readlink -f bin):$(PATH)
 
 SILENT:= $(if $(filter verbose,$(MAKECMDGOALS)),,@)
 DEBUG:= $(if $(filter debug,$(MAKECMDGOALS)),1,)
@@ -50,7 +51,7 @@ coverage:
 clean:
 	@rm $V -rf $(BUILDROOT)
 
-$(run_test_targets): run_test_% : tests/%/test.sh cvs_git_sync
+$(run_test_targets): run_test_% : tests/%/test.sh
 	@$(call fn_silent,echo "Running test $*")
 	@rm $V -rf $(BUILDROOT)/$*
 	@TEST_DEBUG=$(DEBUG) bash $X tests/run_test.sh $*
