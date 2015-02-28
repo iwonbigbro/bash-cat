@@ -7,7 +7,7 @@ from bashcat.output import err
 
 optlist = (
     [ "-h", "--help", "", "Display usage summary" ],
-    [ "-o", "--output", "path", "Path to data file (see BASHCAT_DATA)" ],
+    [ "-o", "--output-dir", "path", "Path to data directory (see BASHCAT_DATADIR)" ],
 )
 
 
@@ -71,5 +71,9 @@ def parse(argv):
     except IndexError:
         pass
 
-    return config
+    if 'output-dir' not in config:
+        config['output-dir'] = os.environ.get('BASHCAT_DATADIR',
+            os.path.join(os.environ.get('TMPDIR', '/tmp'), 'bash-cat')
+        )
 
+    return config

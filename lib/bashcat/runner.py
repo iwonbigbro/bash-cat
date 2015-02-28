@@ -2,24 +2,83 @@
 
 # Copyright (C) 2015 Craig Phillips.  All rights reserved.
 
-import os
+import os, sys, fcntl, select, bashcat.recorder
+
+
+LIB_BASHCAT_DIR = os.path.abspath(os.path.dirname(__file__))
+RCFILE = os.path.join(LIB_BASHCAT_DIR, 'rcfile.sh')
+
+
+class RunnerException(Exception):
+    pass
 
 
 class Runner(object):
     def __init__(self, config):
         self._pid = os.getpid()
         self._config = config
-        self._exitcode = 255
+        self._exitcode = 1
+        self._signum = 0
+        self._script = config['script']
+        self._script_args = config['script_args']
+
+        if self._script is None:
+            raise RunnerException("Missing 'script'")
 
         
-    def monitor(self, r):
+    def monitor(self, r, pid):
         fr = os.fdopen(r)
-        os.waitpid(pid, 0)
+        running = True
+        recorder = bashcat.recorder.Recorder(self._config['output-dir'])
+
+        # Keep trying to read while waiting for our process.
+        while running:
+            wpid, wstatus = os.waitpid(pid, os.WNOHANG)
+            if wpid != 0:
+                running = False
+
+            # Wait for input...
+            if not select.select([ r ], [], [], 0.1)[0]:
+                continue
+
+            # Use our exception handling sync interface to parse the input.
+            with recorder as rec:
+                for line in fr.readlines():
+                    rec.parse(line.rstrip('\n'))
+
+
+        self._exitcode = os.WEXITSTATUS(wstatus)
+        self._signum = os.WTERMSIG(wstatus)
 
 
     def executor(self, w):
-        os.environ['BASHCAT_FD'] = w
-        os.execv("/bin/bash", [ self._config['script'] ] + self._config['script_args'])
+        os.environ['BASHCAT_FD'] = str(w)
+
+        # Ensure our rcfile.sh file exists, or bash will ignore it and run the
+        # target script without our hooks in place.
+        if not os.path.exists(RCFILE):
+            raise FileNotFoundError(RCFILE)
+
+        # Form the command to be executed by bash along with our init file.
+        cmd = [
+            "/bin/bash",
+                "--debugger",
+                "--noprofile",
+                "--init-file", RCFILE,
+                "-i",
+                self._script
+        ] + self._script_args
+
+        # Ensure our pipe doesn't get closed on exec.
+        flags = fcntl.fcntl(w, fcntl.F_GETFD)
+        flags &= ~fcntl.FD_CLOEXEC
+        fcntl.fcntl(w, fcntl.F_SETFD, flags)
+
+        # Flush the buffers.
+        sys.stderr.flush()
+        sys.stdout.flush()
+
+        os.execv("/bin/bash", cmd)
 
 
     def run(self):
@@ -33,7 +92,7 @@ class Runner(object):
 
         # Parent
         os.close(w)
-        self.monitor(r)
+        self.monitor(r, pid)
 
 
     @property

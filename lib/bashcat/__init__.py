@@ -2,7 +2,7 @@
 
 # Copyright (C) 2015 Craig Phillips.  All rights reserved.
 
-import sys, os, bashcat.options, bashcat.runner
+import sys, os, bashcat.output, bashcat.options, bashcat.runner
 
 
 def usage():
@@ -12,6 +12,11 @@ Summary:
 
 Options:
 {options}
+
+Environment:
+    BASHCAT_DATADIR           Directory to read and write data files.  If the -o
+                              option is specified, then the value of this variable
+                              is ignored.
 
 Licence:
     New BSD License (BSD-3)
@@ -29,11 +34,26 @@ def run(config):
     return runner.exitcode
 
 
+def report(config):
+    return 0
+
+
 def main(argv=sys.argv):
     config = options.parse(argv)
 
-    if config.has_key('help'):
+    if 'help' in config:
         usage()
         sys.exit(0)
 
-    sys.exit(run(config))
+    try:
+        if ('text', 'json', 'html') in config:
+            sys.exit(report(config))
+
+        sys.exit(run(config))
+
+    except Exception as e:
+        if os.environ.get('DEBUG', '0') == '1':
+            raise
+
+        bashcat.output.err(e)
+        sys.exit(2)

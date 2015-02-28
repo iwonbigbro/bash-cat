@@ -38,7 +38,6 @@ endef
 endif
 
 V:= $(if $(SILENT),,-v)
-X:= $(if $(DEBUG),-x,)
 
 tests:= $(wildcard tests/*/test.sh)
 run_test_targets:= $(tests:tests/%/test.sh=run_test_%)
@@ -54,4 +53,4 @@ clean:
 $(run_test_targets): run_test_% : tests/%/test.sh
 	@$(call fn_silent,echo "Running test $*")
 	@rm $V -rf $(BUILDROOT)/$*
-	@TEST_DEBUG=$(DEBUG) bash $X tests/run_test.sh $*
+	@TEST_DEBUG=$(DEBUG) bash tests/run_test.sh $*

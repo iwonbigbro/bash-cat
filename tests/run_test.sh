@@ -4,6 +4,7 @@
 
 # A simple test runner implementation.
 
+set +x
 set -Eeu
 
 run_test_sh=$(readlink -f "$BASH_SOURCE")
@@ -17,32 +18,41 @@ export TEST_ROOT=$BUILDROOT/$1
 
 mkdir -p $TEST_ROOT
 
+export PS4='+ $(date +%M:%S.%N):${BASH_SOURCE##*/}:$LINENO:${FUNCNAME:-main}()::: '
+
 function bail() {
     set +xeu
     local e=$1 ; shift
     local p="${FUNCNAME[1]^^} - $TEST_NAME${1:+ [$*]}"
-    local debug_line=$(tail -9 $TEST_ROOT/debug | head -1 | sed 's?^+\+ ??')
+    local debug_line=$(tail -9 $TEST_ROOT/debug | head -1 | sed 's?^+.*()::: ??')
 
     {
 
-    echo "$p"
+    if [[ $e == 0 ]] ; then
+        echo "$p"
+        exit $e
+    fi
 
-    if [[ $e != 0 || ${TEST_DEBUG:-} == 1 ]] ; then
-        if [[ ${TEST_DEBUG:-} ]] ; then
-            echo "$p: DEBUG_BEG:"
-            cat $TEST_ROOT/debug
-            echo "$p: DEBUG_END:"
-        fi
+    if [[ ${TEST_DEBUG:-} ]] ; then
+        echo "$p: DEBUG_BEG:"
+        cat $TEST_ROOT/debug
+        echo "$p: DEBUG_END:"
+    fi
 
-        if [[ -s $TEST_ROOT/output ]] ; then
-            echo "$p: OUTPUT_BEG:"
-            cat $TEST_ROOT/output
-            echo "$p: OUTPUT_END:"
-        fi
+    if [[ -s $TEST_ROOT/output ]] ; then
+        echo "$p: OUTPUT_BEG:"
+        cat $TEST_ROOT/output
+        echo "$p: OUTPUT_END:"
+    elif [[ ! ${TEST_DEBUG:-} ]] ; then
+        echo "$p"
     fi
 
     echo
-    echo "    >>>   ${TEST_STATEMENT:-Unknown error}   <<<"
+
+    if [[ $TEST_STATEMENT != $debug_line ]] ; then
+        echo "    >>>   ${TEST_STATEMENT:-Unknown error}   <<<"
+    fi
+
     echo "    >>>   $debug_line   <<<"
     echo
     echo "$p"
@@ -81,9 +91,11 @@ function end_test() {
 
 function section() {
     TEST_SECTION=$1
+
+    :>$TEST_ROOT/debug
 }
 
-exec 5>&1 1>$TEST_ROOT/stdout 2>$TEST_ROOT/stderr 3>$TEST_ROOT/debug
+exec 5>&1 1>$TEST_ROOT/output 2>&1 3>$TEST_ROOT/debug
 
 BASH_XTRACEFD=3
 set -x
