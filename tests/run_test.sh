@@ -14,9 +14,10 @@ export TEST_DATE=$(date -u "+%Y%m%dT%H%M%S")
 export TEST_SCRIPT=$(readlink -f "${run_test_sh%/*}/$1/test.sh")
 export TEST_SETUP=$(readlink -f "${run_test_sh%/*}/$1/setup.sh")
 export TEST_TEARDOWN=$(readlink -f "${run_test_sh%/*}/$1/teardown.sh")
-export TEST_ROOT=$BUILDROOT/$1
+export TEST_ROOT=$BUILDROOT/tests/$1
 
 mkdir -p $TEST_ROOT
+rm -f $TEST_ROOT/pass
 
 export PS4='+ $(date +%M:%S.%N):${BASH_SOURCE##*/}:$LINENO:${FUNCNAME:-main}()::: '
 
@@ -86,6 +87,7 @@ function end_test() {
         ( . $TEST_TEARDOWN ) || fail "Teardown failure"
     fi
 
+    touch $TEST_ROOT/pass
     exit $TEST_RESULT
 }
 

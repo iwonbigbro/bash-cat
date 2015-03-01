@@ -44,6 +44,12 @@ run_test_targets:= $(tests:tests/%/test.sh=run_test_%)
 
 run_tests: $(run_test_targets)
 
+junit.xml: $(BUILDROOT)/junit.xml
+
+$(BUILDROOT)/junit.xml: $(run_test_targets)
+	@rm -f $@
+	@bash tests/generate_junit.sh >$@
+
 coverage:
 	@shlcov -i $(SHCOV_DATADIR) $(BUILDROOT)/shcov/html
 
