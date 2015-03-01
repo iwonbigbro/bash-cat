@@ -28,20 +28,27 @@ class TextReporter(BaseReporter):
             lines_tot = len(datafile)
             lines_cov = 0
             lines_exec = 0
+            lines_multicount = 0
 
             for dl in datafile.itervalues():
                 flags = [ ' ',' ' ]
-                dl.source
 
                 if dl.executable:
                     flags[0] = 'e'
                     flags[1] = str(dl.count)
+                    lines_exec += 1
 
-                    if not dl.multiline:
-                        lines_exec += 1
+                    if lines_multicount > 0:
+                        flags[1] = str(lines_multicount)
+                        lines_cov += 1
 
                 if dl.count > 0:
                     lines_cov += 1
+
+                    if dl.multiline:
+                        lines_multicount = dl.count
+                    else:
+                        lines_multicount = 0
 
                 yield "[{0}] {1}".format("".join(flags), dl.source)
 
