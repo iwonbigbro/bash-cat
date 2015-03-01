@@ -15,7 +15,6 @@ class RunnerException(Exception):
 
 class Runner(object):
     def __init__(self, config):
-        self._pid = os.getpid()
         self._config = config
         self._exitcode = 1
         self._signum = 0
@@ -29,7 +28,7 @@ class Runner(object):
     def monitor(self, r, pid):
         fr = os.fdopen(r)
         running = True
-        recorder = bashcat.recorder.Recorder(self._config['output-dir'])
+        recorder = bashcat.recorder.Recorder(self._config['data-dir'])
 
         # Keep trying to read while waiting for our process.
         while running:
@@ -42,10 +41,11 @@ class Runner(object):
                 continue
 
             # Use our exception handling sync interface to parse the input.
-            with recorder as rec:
+            try:
                 for line in fr.readlines():
-                    rec.parse(line.rstrip('\n'))
-
+                    recorder.parse(line.rstrip('\n'))
+            except IOError:
+                pass
 
         self._exitcode = os.WEXITSTATUS(wstatus)
         self._signum = os.WTERMSIG(wstatus)

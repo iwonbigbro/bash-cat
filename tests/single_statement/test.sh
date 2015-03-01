@@ -8,6 +8,6 @@ cat >script.sh <<SCRIPT
 echo "Single statement"
 SCRIPT
 
-bash-cat -o bash-cat.dat script.sh
+bash-cat -d bash-cat.dat script.sh
 
-[[ $(bash-cat -o bash-cat.dat --total) == "(100.00%) covered" ]]
+[[ $(bash-cat -d bash-cat.dat --total -) == "(100.00%) covered" ]]

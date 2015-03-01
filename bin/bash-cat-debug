@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Copyright (C) 2015 Craig Phillips.  All rights reserved.
+
+bashcat_debug_sh=$(readlink -f "$BASH_SOURCE")
+bashcat=${bashcat_debug_sh%-debug}
+
+python -m trace -t -C "${BASHCAT_DEBUG_OUT:-.}" "$bashcat" "$@"

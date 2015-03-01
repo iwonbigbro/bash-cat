@@ -2,12 +2,15 @@
 
 # Copyright (C) 2015 Craig Phillips.  All rights reserved.
 
-import sys
+import os, sys
 from bashcat.output import err
 
 optlist = (
     [ "-h", "--help", "", "Display usage summary" ],
-    [ "-o", "--output-dir", "path", "Path to data directory (see BASHCAT_DATADIR)" ],
+    [ "-d", "--data-dir", "path", "Path to data directory (see BASHCAT_DATADIR)" ],
+    [ "-T", "--total", "(path|-)", "Write aggregated coverage stats to 'path'" ],
+    [ "-t", "--text", "(path|-)", "Write text report to 'path'" ],
+    [ "-H", "--html", "(path|-)", "Write HTML report to 'path'" ]
 )
 
 
@@ -71,8 +74,8 @@ def parse(argv):
     except IndexError:
         pass
 
-    if 'output-dir' not in config:
-        config['output-dir'] = os.environ.get('BASHCAT_DATADIR',
+    if 'data-dir' not in config:
+        config['data-dir'] = os.environ.get('BASHCAT_DATADIR',
             os.path.join(os.environ.get('TMPDIR', '/tmp'), 'bash-cat')
         )
 

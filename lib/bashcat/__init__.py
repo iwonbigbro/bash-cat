@@ -2,7 +2,8 @@
 
 # Copyright (C) 2015 Craig Phillips.  All rights reserved.
 
-import sys, os, bashcat.output, bashcat.options, bashcat.runner
+import sys, os, bashcat.output, bashcat.options,\
+       bashcat.runner, bashcat.reporter
 
 
 def usage():
@@ -35,6 +36,8 @@ def run(config):
 
 
 def report(config):
+    reporter = bashcat.reporter.Reporter(config)
+    reporter.run()
     return 0
 
 
@@ -46,7 +49,7 @@ def main(argv=sys.argv):
         sys.exit(0)
 
     try:
-        if ('text', 'json', 'html') in config:
+        if config['script'] is None:
             sys.exit(report(config))
 
         sys.exit(run(config))
