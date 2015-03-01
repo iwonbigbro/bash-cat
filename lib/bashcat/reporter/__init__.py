@@ -31,7 +31,7 @@ class BaseReporter(object):
             fd = sys.stdout
             closefd = False
         else:
-            fd = open(path, self._mode)
+            fd = open(path, "w")
             closefd = True
 
         try:
