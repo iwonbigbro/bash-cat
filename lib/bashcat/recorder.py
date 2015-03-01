@@ -27,7 +27,8 @@ class Recorder(object):
             self._datafiles[srcfile].update(*info[1:])
 
         except KeyError:
-            self._datafiles[srcfile] = bashcat.datafile.DataFile(*info[1:], datadir=self._datadir)
+            self._datafiles[srcfile] = \
+                bashcat.datafile.DataFile(*info[1:], datadir=self._datadir)
 
 
     def __del__(self):

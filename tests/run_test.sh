@@ -16,8 +16,8 @@ export TEST_SETUP=$(readlink -f "${run_test_sh%/*}/$1/setup.sh")
 export TEST_TEARDOWN=$(readlink -f "${run_test_sh%/*}/$1/teardown.sh")
 export TEST_ROOT=$BUILDROOT/tests/$1
 
+rm -rf $TEST_ROOT
 mkdir -p $TEST_ROOT
-rm -f $TEST_ROOT/pass
 
 export PS4='+ $(date +%M:%S.%N):${BASH_SOURCE##*/}:$LINENO:${FUNCNAME:-main}()::: '
 

@@ -2,7 +2,7 @@
 
 # Copyright (C) 2015 Craig Phillips.  All rights reserved.
 
-import fcntl, os, hashlib, pickle, re, string, bashcat.output
+import fcntl, copy, os, sys, hashlib, pickle, re, string, bashcat.output
 
 
 class DataLine(object):
@@ -151,6 +151,7 @@ class DataFile(object):
         if not os.path.exists(datadir):
             os.mkdir(datadir, 0700)
 
+        self.sync()
         self.update(srcfile, lineno, branch, line)
 
 
@@ -217,7 +218,8 @@ class DataFile(object):
                 if datafile.digest == self.digest:
                     self.merge(datafile)
 
-            except:
+            except Exception as e:
+                sys.stderr.write("error: " + str(e))
                 pass
 
             if self._modified:
