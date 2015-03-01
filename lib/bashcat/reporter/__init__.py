@@ -47,7 +47,9 @@ class BaseReporter(object):
                 'executable': 0,
                 'unexecutable': 0,
                 'multicount': 0,
-                'covered%': 0.0
+                'covered%': 0.0,
+                'heredoc_start': False,
+                'heredoc': None
             }
 
             yield self._generator_yield('datafile-enter', line_stats, datafile=datafile)
@@ -55,21 +57,33 @@ class BaseReporter(object):
             for dl in datafile.itervalues():
                 yield self._generator_yield('dataline-enter', line_stats, dataline=dl)
 
-                if dl.executable:
-                    line_stats['executable'] += 1
+                if line_stats['heredoc']:
+                    line_stats['heredoc_start'] = False
 
-                    if line_stats['multicount'] > 0:
-                        line_stats['covered'] += 1
-                else:
+                    if dl.source == line_stats['heredoc']:
+                        line_stats['heredoc'] = None
+
                     line_stats['unexecutable'] += 1
+                else:
+                    if dl.heredoc:
+                        line_stats['heredoc'] = dl.heredoc
+                        line_stats['heredoc_start'] = True
 
-                if dl.count > 0:
-                    line_stats['covered'] += 1
+                    if dl.executable:
+                        line_stats['executable'] += 1
 
-                    if dl.multiline:
-                        line_stats['multicount'] = dl.count
+                        if line_stats['multicount'] > 0:
+                            line_stats['covered'] += 1
                     else:
-                        line_stats['multicount'] = 0
+                        line_stats['unexecutable'] += 1
+
+                    if dl.count > 0:
+                        line_stats['covered'] += 1
+
+                        if dl.multiline:
+                            line_stats['multicount'] = dl.count
+                        else:
+                            line_stats['multicount'] = 0
 
                 yield self._generator_yield('dataline-exit', line_stats, dataline=dl)
 

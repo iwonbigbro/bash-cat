@@ -15,9 +15,19 @@ class DataLine(object):
         self._mask = self._maskinit[:]
         self._count = 0
         self._multiline = False
+        self._heredoc = None
 
         if self._source.endswith('\\'):
             self._multiline = True
+
+        m = re.search(r" <<-?'?([^']+)'?", self._source)
+        if m is not None:
+            self._heredoc = m.group(1)
+
+
+    @property
+    def heredoc(self):
+        return self._heredoc
 
 
     @property

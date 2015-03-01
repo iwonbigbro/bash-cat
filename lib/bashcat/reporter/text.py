@@ -24,7 +24,7 @@ class TextReporter(TotalReporter):
 
             flags = [ '-', str(dl.count) ]
 
-            if dl.executable:
+            if dl.executable and (stats['heredoc'] is None or stats['heredoc_start']):
                 flags[0] = '+'
 
                 if stats['multicount'] > 0:
@@ -35,12 +35,9 @@ class TextReporter(TotalReporter):
             stats['flags'] = flags
 
         elif event == 'dataline-exit':
-            ret_lines.extend([
-                "[{0: <4}] {1}".format(
-                    "".join(stats['flags']),
-                    kwargs['dataline'].source
-                )
-            ])
+            ret_lines.append("[{0: <4}] {1}".format(
+                "".join(stats['flags']), kwargs['dataline'].source
+            ))
 
         elif event == 'datafile-exit':
             ret_lines.extend([
