@@ -49,9 +49,10 @@ class TextReporter(TotalReporter):
             ])
 
         elif event == 'report-exit':
-            ret = super(TextReporter, self)._generator_yield(event, stats, **kwargs)
-            if ret is not None:
-                ret_lines.append(ret)
+            ret_lines.extend([
+                self._separator('-'),
+                super(TextReporter, self)._generator_yield(event, stats, **kwargs)
+            ])
 
         if ret_lines:
             return "\n".join(ret_lines)
