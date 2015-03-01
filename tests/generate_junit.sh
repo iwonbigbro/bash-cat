@@ -17,13 +17,13 @@ for t in $BUILDROOT/tests/* ; do
     printf '<testcase classname="%s" name="%s">\n' "$class" "$name"
     if [[ -s $t/output ]] ; then
         echo '<system-out><![CDATA['
-        cat $t/output
+        strings $t/output
         echo ']]></system-out>'
     fi
 
     if [[ -s $t/debug ]] ; then
         echo '<system-err><![CDATA['
-        cat $t/debug
+        strings $t/debug
         echo ']]></system-err>'
     fi
 
