@@ -1,1 +1,1 @@
-script: make run_tests DEBUG=1
+script: make run_tests junit.xml DEBUG=1
