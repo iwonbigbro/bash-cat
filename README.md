@@ -1,13 +1,20 @@
 Bash Coverage Analysis Tool
 ===========================
 
+Test Results
+------------
+[![Circle CI](https://circleci.com/gh/iwonbigbro/bash-cat.svg?style=svg)](https://circleci.com/gh/iwonbigbro/bash-cat)
+
+Why?
+----
+
 Yet Another Bash Coverage Tool?  Yes.
 
 Why?  Because I wanted a tool that I did not have to install, build or require
 any special dependencies or pre-requisits.
 
 History
-=======
+-------
 
 Some build environments have constraints on them that often mean you don't have
 network access, you have legacy tools and are unable to update, install or build
