@@ -1,0 +1,13 @@
+body {
+    padding-top: 50px;
+}
+
+th {
+    background: #efefef;
+}
+
+ul.navbar-nav > li.label {
+    margin-top: 12px;
+    margin-right: 20px;
+    font-size: 18px;
+}
