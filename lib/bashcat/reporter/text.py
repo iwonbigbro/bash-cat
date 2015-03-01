@@ -36,7 +36,9 @@ class TextReporter(BaseReporter):
                 if dl.executable:
                     flags[0] = 'e'
                     flags[1] = str(dl.count)
-                    lines_exec += 1
+
+                    if not dl.multiline:
+                        lines_exec += 1
 
                 if dl.count > 0:
                     lines_cov += 1

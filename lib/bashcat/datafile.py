@@ -14,6 +14,15 @@ class DataLine(object):
         self._masklen = len(self._maskinit)
         self._mask = self._maskinit[:]
         self._count = 0
+        self._multiline = False
+
+        if self._source.endswith('\\'):
+            self._multiline = True
+
+
+    @property
+    def multiline(self):
+        return self._multiline
 
 
     @property
