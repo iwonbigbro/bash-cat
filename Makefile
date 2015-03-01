@@ -44,7 +44,11 @@ run_test_targets:= $(tests:tests/%/test.sh=run_test_%)
 
 run_tests: $(run_test_targets)
 
-junit.xml: $(BUILDROOT)/junit.xml
+junit.xml: $(BUILDROOT)/junit.xml $(if $(CIRCLE_TEST_REPORTS),$(CIRCLE_TEST_REPORTS)/junit.xml)
+
+$(CIRCLE_TEST_REPORTS)/junit.xml: $(BUILDROOT)/junit.xml
+	@rm -f $@
+	@cp $V $< $@
 
 $(BUILDROOT)/junit.xml: $(run_test_targets)
 	@rm -f $@
