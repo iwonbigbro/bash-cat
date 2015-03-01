@@ -42,7 +42,7 @@ class TextReporter(TotalReporter):
         elif event == 'datafile-exit':
             ret_lines.extend([
                 self._separator('-'),
-                "Lines ({total} [executable {executable}, unexecutable {unexecutable}]), Covered ({covered}), Coverage ({covered%}%)".format(**stats)
+                "Lines ({total} [executable {executable}, unexecutable {unexecutable}]), Covered ({covered}), Coverage ({covered%:.1f}%)".format(**stats)
             ])
 
         elif event == 'report-exit':
