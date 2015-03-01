@@ -19,7 +19,7 @@ bash-cat -d bash-cat.dat script.sh
 # Verify the lines have been counted that we expect.
 bash-cat -d bash-cat.dat --text report.txt
 
-expected='[+5] echo when a script is executed multiple times, it should \'
+expected='[+5  ] echo when a script is executed multiple times, it should \'
 actual=$(grep 'echo when a script is executed multiple times, it should' report.txt)
 
 echo "e=[$expected]"
