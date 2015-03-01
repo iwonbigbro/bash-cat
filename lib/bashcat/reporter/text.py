@@ -5,68 +5,58 @@
 import os, sys, bashcat.datafile
 
 from bashcat.reporter import BaseReporter, Factory
+from bashcat.reporter.total import TotalReporter
 
 
-class TextReporter(BaseReporter):
-    def generator(self):
-        covered = 0.0
-        count = 0
+class TextReporter(TotalReporter):
+    def _generator_yield(self, event, stats, **kwargs):
+        ret_lines = []
 
-        for f in os.listdir(self._datadir):
-            abs_f = os.path.join(self._datadir, f)
+        if event == 'datafile-enter':
+            ret_lines.extend([
+                self._separator('-'),
+                kwargs['datafile'].path,
+                self._separator('=')
+            ])
 
-            try:
-                datafile = bashcat.datafile.load(abs_f)
-            except UnpickleError:
-                bashcat.output.err("failed to load: {0}".format(abs_f))
-                continue
+        elif event == 'dataline-enter':
+            dl = kwargs['dataline']
 
-            yield "".join([ "-" ] * int(os.environ.get('COLUMNS', 80)))
-            yield datafile.path
-            yield "".join([ "=" ] * int(os.environ.get('COLUMNS', 80)))
+            flags = [ '-', str(dl.count) ]
 
-            lines_tot = len(datafile)
-            lines_cov = 0
-            lines_exec = 0
-            lines_multicount = 0
+            if dl.executable:
+                flags[0] = '+'
 
-            for dl in datafile.itervalues():
-                flags = [ ' ',' ' ]
+                if stats['multicount'] > 0:
+                    flags[1] = str(stats['multicount'])
+            else:
+                flags[0] = '#'
 
-                if dl.executable:
-                    flags[0] = 'e'
-                    flags[1] = str(dl.count)
-                    lines_exec += 1
+            stats['flags'] = flags
 
-                    if lines_multicount > 0:
-                        flags[1] = str(lines_multicount)
-                        lines_cov += 1
+        elif event == 'dataline-exit':
+            ret_lines.extend([
+                "[{0: <4}] {1}".format(
+                    "".join(stats['flags']),
+                    kwargs['dataline'].source
+                )
+            ])
 
-                if dl.count > 0:
-                    lines_cov += 1
+        elif event == 'datafile-exit':
+            ret_lines.extend([
+                self._separator('-'),
+                "Lines ({total} [executable {executable}, unexecutable {unexecutable}]), Covered ({covered}), Coverage ({covered%}%)".format(**stats)
+            ])
 
-                    if dl.multiline:
-                        lines_multicount = dl.count
-                    else:
-                        lines_multicount = 0
+        elif event == 'report-exit':
+            ret = super(TextReporter, self)._generator_yield(event, stats, **kwargs)
+            if ret is not None:
+                ret_lines.append(ret)
 
-                yield "[{0}] {1}".format("".join(flags), dl.source)
+        if ret_lines:
+            return "\n".join(ret_lines)
 
-            datafile_cov = (float(lines_cov) / float(lines_exec)) * 100.0
-            covered += datafile_cov
-            count += 1
-
-            yield "".join([ "-" ] * int(os.environ.get('COLUMNS', 80)))
-            yield "Lines ({0} [executable {1}, non-executable {2}]), Covered ({3}), Coverage ({4}%)".format(
-                lines_tot,
-                lines_exec,
-                lines_tot - lines_exec,
-                lines_cov,
-                datafile_cov
-            )
-
-        yield "".join([ "-" ] * int(os.environ.get('COLUMNS', 80)))
-        yield "(%.2f%%) covered" % (covered / float(count))
+        return None
 
 
 Factory.register('text', TextReporter)

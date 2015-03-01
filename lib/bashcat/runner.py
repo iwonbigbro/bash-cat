@@ -42,8 +42,17 @@ class Runner(object):
 
             # Use our exception handling sync interface to parse the input.
             try:
+                bashcat_line = ""
                 for line in fr.readlines():
-                    recorder.parse(line.rstrip('\n'))
+                    bashcat_line += line.rstrip('\n').replace('\n', ' ')
+
+                    if bashcat_line.endswith(":::BASHCAT"):
+                        recorder.parse(bashcat_line)
+                        bashcat_line = ""
+
+                if bashcat_line:
+                    raise Exception("Fragment found with no terminator: '{0}'".format(bashcat_line))
+
             except IOError:
                 pass
 

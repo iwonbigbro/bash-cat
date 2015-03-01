@@ -20,5 +20,5 @@ bash-cat -d bash-cat.dat script.sh
 # Verify the lines have been counted that we expect.
 bash-cat -d bash-cat.dat --text report.txt
 
-grep -F 'Lines (8 [executable 3, non-executable 5]), Covered (3), Coverage (100.0%)' report.txt
+grep -F 'Lines (8 [executable 3, unexecutable 5]), Covered (3), Coverage (100.0%)' report.txt
 

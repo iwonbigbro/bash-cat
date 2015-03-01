@@ -28,7 +28,7 @@ function bashcat_intercept() {
         -v fd=$BASHCAT_FD \
         '
             NR == l {
-                printf "BASHCAT:::%s:::%s:::%s:::%s\n", f, l, s, $0 >>"/dev/fd/"fd;
+                printf "BASHCAT:::%s:::%s:::%s:::%s:::BASHCAT\n", f, l, s, $0 >>"/dev/fd/"fd;
                 exit;
             }
         ' "$file" || true

@@ -78,6 +78,8 @@ function setup() {
 
 function end_test() {
     if [[ $TEST_RESULT == 0 ]] ; then
+        touch $TEST_ROOT/pass
+
         ( pass ) || true
     else
         ( fail "$TEST_SECTION failure" ) || true
@@ -87,7 +89,6 @@ function end_test() {
         ( . $TEST_TEARDOWN ) || fail "Teardown failure"
     fi
 
-    touch $TEST_ROOT/pass
     exit $TEST_RESULT
 }
 

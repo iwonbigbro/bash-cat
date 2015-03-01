@@ -128,10 +128,10 @@ class DataLine(object):
 
 
 class DataFile(object):
-    def __init__(self, srcfile, lineno, branch, line, datadir):
+    def __init__(self, srcfile, lineno, branch, line, *args, **kwargs):
         self._srcfile = srcfile
-        self._datadir = datadir
-        self._datafile = os.path.join(datadir, hashlib.sha1(srcfile).hexdigest())
+        self._datadir = kwargs['datadir']
+        self._datafile = os.path.join(self._datadir, hashlib.sha1(srcfile).hexdigest())
         self._modified = False
 
         self._lines = {}
@@ -148,8 +148,8 @@ class DataFile(object):
 
             self._digest = sha.hexdigest()
 
-        if not os.path.exists(datadir):
-            os.mkdir(datadir, 0700)
+        if not os.path.exists(self._datadir):
+            os.mkdir(self._datadir, 0700)
 
         self.sync()
         self.update(srcfile, lineno, branch, line)
@@ -190,7 +190,7 @@ class DataFile(object):
         return self._modified
 
 
-    def update(self, srcfile, lineno, branch, line):
+    def update(self, srcfile, lineno, branch, line, *args, **kwargs):
         try:
             dataline = self._lines[int(lineno)]
         except:
@@ -218,9 +218,11 @@ class DataFile(object):
                 if datafile.digest == self.digest:
                     self.merge(datafile)
 
-            except Exception as e:
-                sys.stderr.write("error: " + str(e))
+            except EOFError:
                 pass
+
+            except Exception as e:
+                raise
 
             if self._modified:
                 for dl in self._lines.itervalues():
