@@ -10,6 +10,7 @@ optlist = (
     [ "-d", "--data-dir", "path", "Path to data directory (see BASHCAT_DATADIR)" ],
     [ "-T", "--total", "(path|-)", "Write aggregated coverage stats to 'path'" ],
     [ "-t", "--text", "(path|-)", "Write text report to 'path'" ],
+    [ "-j", "--json", "(path|-)", "Write HTML report to 'path'" ],
     [ "-H", "--html", "(path|-)", "Write HTML report to 'path'" ]
 )
 

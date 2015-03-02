@@ -111,12 +111,8 @@ class DataLine(object):
                 self.preceding(lambda x: x.is_branch or x.is_executable) \
                     .command_keyword()
 
-            sys.stderr.write('preceding_keyword = ' + repr(preceding_keyword) + ' src = ' + self._source + '\n')
-
             if preceding_keyword in ('in', ';;'):
                 keyword = self.command_keyword(is_case=True, before=';;')
-
-                sys.stderr.write('keyword = ' + repr(keyword) + ' src = ' + self._source + '\n')
                 if keyword is None:
                     return False
 

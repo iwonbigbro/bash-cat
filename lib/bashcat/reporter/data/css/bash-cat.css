@@ -14,4 +14,12 @@ ul.navbar-nav > li.label {
 
 .progress {
     margin-bottom: 0;
+    position: relative;
+}
+
+.progress span {
+    position: absolute;
+    display: block;
+    width: 100%;
+    color: #333;
 }
