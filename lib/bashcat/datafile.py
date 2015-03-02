@@ -5,8 +5,12 @@
 import fcntl, copy, os, sys, hashlib, pickle, re, string, bashcat.output
 
 
+class NotFoundError(Exception):
+    pass
+
+
 class DataLine(object):
-    def __init__(self, source):
+    def __init__(self, source, prev=None):
         self._source = source.rstrip('\n')
         self._data = {}
         self._modified = False
@@ -17,12 +21,44 @@ class DataLine(object):
         self._multiline = False
         self._heredoc = None
 
+        # Create a linked list so that lines can reference their
+        # siblings, ancestors and descendents.
+        self._prev = prev
+        self._next = None
+
+        if prev is not None:
+            prev._next = self
+
         if self._source.endswith('\\'):
             self._multiline = True
 
         m = re.search(r" <<-?'?([^']+)'?", self._source)
         if m is not None:
             self._heredoc = m.group(1)
+
+
+    def preceding(self, executable=None):
+        prev = self._prev
+
+        while prev is not None:
+            if executable is None or prev.executable == executable:
+                return prev
+
+            prev = prev._prev
+
+        raise NotFoundError("No preceding sibling")
+
+
+    def following(self, executable=None):
+        next = self._next
+
+        while next is not None:
+            if executable is None or next.executable == executable:
+                return next
+
+            next = next._next
+
+        raise NotFoundError("No following sibling")
 
 
     @property
@@ -40,6 +76,27 @@ class DataLine(object):
         return self._source
 
 
+    def command_keyword(self, **kwargs):
+        src = self._source
+
+        if kwargs.get('is_case'):
+            # Match everything after the first unescaped closing bracket.
+            m = re.search(r'^[^\)]+(?<!\\)\)(\s+\S+.*)?$', self._source)
+            if m is not None:
+                src = m.group(1)
+                if src is None:
+                    return None
+            else:
+                return None
+
+        # Default: Obtain the command keyword from the current line.
+        m = re.search(r'(\S+)\s*$', src)
+        if m is not None:
+            return m.group(1)
+
+        return None
+
+
     @property
     def executable(self):
         src = self._source
@@ -51,10 +108,30 @@ class DataLine(object):
         if not src:
             return False
 
+        # Bash case statements are ayntactically heavy, with little in
+        # the way of runtime interpretation.  We need to specialise these
+        # blocks and filter out the pattern logic and decoration.
+        try:
+            keyword = self.preceding(executable=True) \
+                          .command_keyword(is_case=True) 
+
+            if keyword in ('in', ';;'):
+                keyword = self.command_keyword(is_case=True, preceding=';;')
+                if keyword is None:
+                    return False
+
+                # TODO: Ran out of time testing.
+
+                # Denotes a case statement branch.
+                return (self.command_keyword() not in (None, ';;'))
+
+        except NotFoundError:
+            pass
+
         # Some statements are closing statements and are just syntax
         # directives to bash.  Therefore, they do not get executed at
         # runtime and should be excluded.
-        src = re.sub(r'\s*(fi|then|else)\s*;?', r'', src).strip()
+        src = re.sub(r'\s*(fi|then|else|;;|esac|in|do|done)\s*;?', r'', src).strip()
         if not src:
             return False
 
@@ -156,12 +233,16 @@ class DataFile(object):
         with open(srcfile, "r") as f:
             sha = hashlib.sha1()
             srclineno = 0
+
+            dl_prev = None
             
             for srcline in f:
                 sha.update(srcline)
 
+                dl_curr = DataLine(srcline, dl_prev)
+
                 srclineno += 1
-                self._lines[srclineno] = DataLine(srcline)
+                self._lines[srclineno] = dl_prev = dl_curr
 
             self._digest = sha.hexdigest()
 
