@@ -2,7 +2,7 @@
 
 # Copyright (C) 2015 Craig Phillips.  All rights reserved.
 
-cat >script.sh <<SCRIPT
+bashcat_test 8 3 5 3 100.0 <<SCRIPT
 #!/bin/bash
 
 echo "Single statement"
@@ -12,13 +12,3 @@ echo "Another statement"
 
 : Bash null operation, which should be counted.
 SCRIPT
-
-bash-cat -d bash-cat.dat script.sh
-
-[[ $(bash-cat -d bash-cat.dat --total -) == "(100.00%) covered" ]]
-
-# Verify the lines have been counted that we expect.
-bash-cat -d bash-cat.dat --text report.txt
-
-grep -F 'Lines (8 [executable 3, unexecutable 5]), Covered (3), Coverage (100.0%)' report.txt
-

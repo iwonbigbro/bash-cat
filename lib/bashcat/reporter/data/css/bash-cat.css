@@ -11,3 +11,7 @@ ul.navbar-nav > li.label {
     margin-right: 20px;
     font-size: 18px;
 }
+
+.progress {
+    margin-bottom: 0;
+}

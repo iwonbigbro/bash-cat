@@ -2,7 +2,7 @@
 
 # Copyright (C) 2015 Craig Phillips.  All rights reserved.
 
-import os, sys, importlib, bashcat.datafile
+import os, sys, bashcat.datafile
 
 
 report_types = {}
@@ -135,7 +135,8 @@ class Reporter(object):
     def run(self):
         for modname in self._modules:
             if modname in self._config:
-                importlib.import_module('bashcat.reporter.' + modname)
+                __import__('bashcat.reporter.' + modname,
+                        globals(), locals(), [], -1)
 
                 Factory.create(modname, self._datadir).write(
                     self._config[modname]

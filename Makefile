@@ -57,6 +57,9 @@ $(BUILDROOT)/junit.xml: $(run_test_targets)
 coverage:
 	@shlcov -i $(SHCOV_DATADIR) $(BUILDROOT)/shcov/html
 
+clean_pyc:
+	@find bin lib -name '*.pyc' -exec rm $V -f {} \;
+
 clean:
 	@rm $V -rf $(BUILDROOT)
 

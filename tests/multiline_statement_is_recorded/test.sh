@@ -2,7 +2,7 @@
 
 # Copyright (C) 2015 Craig Phillips.  All rights reserved.
 
-cat >script.sh <<SCRIPT
+bashcat_test 8 6 2 6 100.0 <<SCRIPT
 #!/bin/bash
 
 echo a statement \\
@@ -12,17 +12,3 @@ echo a statement \\
     recorded \\
     correctly
 SCRIPT
-
-bash-cat -d bash-cat.dat script.sh
-
-# Verify the lines have been counted that we expect.
-bash-cat -d bash-cat.dat --text report.txt
-
-expected='Lines (8 [executable 6, unexecutable 2]), Covered (6), Coverage (100.0%)'
-actual=$(grep '^Lines.*executable.*unexecutable.*Coverage' report.txt)
-
-echo "e=[$expected]"
-echo "a=[$actual]"
-
-[[ "$actual" == "$expected" ]]
-

@@ -46,12 +46,19 @@ class DataLine(object):
         m = re.search(r'^([^#]*)#.*$', src)
 
         if m is not None:
-            src = m.group(1)
+            src = m.group(1).strip()
 
-        if src.strip():
-            return True
+        if not src:
+            return False
 
-        return False
+        # Some statements are closing statements and are just syntax
+        # directives to bash.  Therefore, they do not get executed at
+        # runtime and should be excluded.
+        src = re.sub(r'\s*(fi|then|else)\s*;?', r'', src).strip()
+        if not src:
+            return False
+
+        return True
 
 
     def sync(self):

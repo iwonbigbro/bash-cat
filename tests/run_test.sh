@@ -98,6 +98,10 @@ function section() {
     :>$TEST_ROOT/debug
 }
 
+if [[ -f ${run_test_sh%/*}/run_test_functions.sh ]] ; then
+    . ${run_test_sh%/*}/run_test_functions.sh
+fi
+
 exec 5>&1 1>$TEST_ROOT/output 2>&1 3>$TEST_ROOT/debug
 
 BASH_XTRACEFD=3
