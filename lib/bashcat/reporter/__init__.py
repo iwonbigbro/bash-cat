@@ -69,7 +69,7 @@ class BaseReporter(object):
                         line_stats['heredoc'] = dl.heredoc
                         line_stats['heredoc_start'] = True
 
-                    if dl.executable:
+                    if dl.is_executable:
                         line_stats['executable'] += 1
 
                         if line_stats['multicount'] > 0:

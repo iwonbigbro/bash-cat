@@ -52,3 +52,47 @@ then
     echo # Covered
 fi
 SCRIPT
+
+bashcat_test 8 3 5 2 66.7 <<SCRIPT
+case blah
+in
+blah) true ;;
+blah) ;;
+blah)
+    true
+    ;;
+esac
+SCRIPT
+
+bashcat_test 8 3 5 2 66.7 <<SCRIPT
+case blah
+in
+blah\)) ;;
+blah) true ;;
+blah)
+    true
+    ;;
+esac
+SCRIPT
+
+bashcat_test 8 3 5 2 66.7 <<SCRIPT
+case blah
+in
+blah\)) ;;
+blah\)) true ;;
+blah)
+    true
+    ;;
+esac
+SCRIPT
+
+bashcat_test 8 3 5 2 66.7 <<SCRIPT
+case blah
+in
+blah\)) ;;
+blah) true ;;
+blah\))
+    true
+    ;;
+esac
+SCRIPT

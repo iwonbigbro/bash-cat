@@ -24,7 +24,7 @@ class TextReporter(TotalReporter):
 
             flags = [ '-', str(dl.count) ]
 
-            if dl.executable and (stats['heredoc'] is None or stats['heredoc_start']):
+            if dl.is_executable and (stats['heredoc'] is None or stats['heredoc_start']):
                 flags[0] = '+'
 
                 if stats['multicount'] > 0:

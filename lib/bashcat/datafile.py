@@ -2,7 +2,8 @@
 
 # Copyright (C) 2015 Craig Phillips.  All rights reserved.
 
-import fcntl, copy, os, sys, hashlib, pickle, re, string, bashcat.output
+import fcntl, copy, os, sys, hashlib, pickle, re, string
+import cached, bashcat.output
 
 
 class NotFoundError(Exception):
@@ -37,11 +38,11 @@ class DataLine(object):
             self._heredoc = m.group(1)
 
 
-    def preceding(self, executable=None):
+    def preceding(self, filter=None):
         prev = self._prev
 
         while prev is not None:
-            if executable is None or prev.executable == executable:
+            if not callable(filter) or filter(prev):
                 return prev
 
             prev = prev._prev
@@ -49,12 +50,12 @@ class DataLine(object):
         raise NotFoundError("No preceding sibling")
 
 
-    def following(self, executable=None):
+    def following(self, filter=None):
         next = self._next
 
         while next is not None:
-            if executable is None or next.executable == executable:
-                return next
+            if not callable(filter) or filter(prev):
+                return prev
 
             next = next._next
 
@@ -76,35 +77,29 @@ class DataLine(object):
         return self._source
 
 
-    def command_keyword(self, **kwargs):
-        src = self._source
-
-        if kwargs.get('is_case'):
-            # Match everything after the first unescaped closing bracket.
-            m = re.search(r'^[^\)]+(?<!\\)\)(\s+\S+.*)?$', self._source)
-            if m is not None:
-                src = m.group(1)
-                if src is None:
-                    return None
-            else:
-                return None
-
-        # Default: Obtain the command keyword from the current line.
-        m = re.search(r'(\S+)\s*$', src)
-        if m is not None:
-            return m.group(1)
-
-        return None
-
-
-    @property
-    def executable(self):
-        src = self._source
+    @cached.property
+    def stripped_source(self):
+        src = self._source.strip()
         m = re.search(r'^([^#]*)#.*$', src)
 
         if m is not None:
             src = m.group(1).strip()
 
+        return src
+
+
+    @cached.property
+    def is_branch(self):
+        src = self.stripped_source
+        if not src:
+            return False
+
+        return (re.search(r'\s*(then|else|;;|in|do)\s*$', src) is not None)
+
+
+    @cached.property
+    def is_executable(self):
+        src = self.stripped_source
         if not src:
             return False
 
@@ -112,18 +107,21 @@ class DataLine(object):
         # the way of runtime interpretation.  We need to specialise these
         # blocks and filter out the pattern logic and decoration.
         try:
-            keyword = self.preceding(executable=True) \
-                          .command_keyword(is_case=True) 
+            preceding_keyword = \
+                self.preceding(lambda x: x.is_branch or x.is_executable) \
+                    .command_keyword()
 
-            if keyword in ('in', ';;'):
-                keyword = self.command_keyword(is_case=True, preceding=';;')
+            sys.stderr.write('preceding_keyword = ' + repr(preceding_keyword) + ' src = ' + self._source + '\n')
+
+            if preceding_keyword in ('in', ';;'):
+                keyword = self.command_keyword(is_case=True, before=';;')
+
+                sys.stderr.write('keyword = ' + repr(keyword) + ' src = ' + self._source + '\n')
                 if keyword is None:
                     return False
 
-                # TODO: Ran out of time testing.
-
                 # Denotes a case statement branch.
-                return (self.command_keyword() not in (None, ';;'))
+                return True
 
         except NotFoundError:
             pass
@@ -136,6 +134,34 @@ class DataLine(object):
             return False
 
         return True
+
+
+    def command_keyword(self, **kwargs):
+        src = self._source
+
+        if kwargs.get('is_case'):
+            # Match everything after the first unescaped closing bracket.
+            m = re.search(r'^(?:\\\)|[^\)])+\)(\s+\S+.*)?$', self._source)
+            if m is not None:
+                src = m.group(1)
+                if src is None:
+                    return None
+
+            if src == 'esac':
+                return None
+
+        before = kwargs.get('before')
+        if before is not None:
+            m = re.search(r'^(.*)' + before, src)
+            if m is not None:
+                src = m.group(1).strip()
+
+        # Default: Obtain the command keyword from the current line.
+        m = re.search(r'(\S+)\s*$', src)
+        if m is not None:
+            return m.group(1)
+
+        return None
 
 
     def sync(self):
