@@ -61,6 +61,11 @@ code > div.executable.executed {
     background-color: #cfc;
 }
 
+code > div.heredoc {
+    border-left: 2px solid #ffae00;
+    background-color: #ffee97;
+}
+
 code.language-bash span.comment {
     color: #aaa;
 }

@@ -47,6 +47,7 @@ class BaseReporter(object):
                 'executable': 0,
                 'unexecutable': 0,
                 'multicount': 0,
+                'heredoc': False,
                 'covered%': 0.0
             }
 
@@ -62,6 +63,7 @@ class BaseReporter(object):
                         line_stats['covered'] += 1
                 else:
                     line_stats['unexecutable'] += 1
+
 
                 if dl.count > 0:
                     line_stats['covered'] += 1

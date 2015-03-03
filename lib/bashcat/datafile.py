@@ -65,7 +65,6 @@ class DataLine(object):
             m = re.search(r'[^<]<<-?(["\'])?(\w+)\1?', self.stripped_source)
             if m is not None:
                 self._heredoc = m.group(2)
-                sys.stderr.write('self._heredoc = ' + repr(self._heredoc) + '\n')
 
             return self._heredoc
 
@@ -124,6 +123,11 @@ class DataLine(object):
 
         # Or we are within a here block.
         if self._prev and self._prev.is_heredoc and self.is_heredoc:
+            # If there is a count on execution, there must have been
+            # some embedded code that was executed.
+            if self._count > 0:
+                return True
+
             return False
 
         # Bash case statements are ayntactically heavy, with little in
@@ -334,6 +338,8 @@ class DataFile(object):
 
 
     def update(self, srcfile, lineno, branch, line, *args, **kwargs):
+        sys.stderr.write('lineno = {0}, branch = {1}, line = {2}\n'.format(lineno, branch, line))
+
         try:
             dataline = self._lines[int(lineno)]
         except:

@@ -50,6 +50,7 @@ class JsonReporter(TotalReporter):
             dl = kwargs['dataline']
 
             self._dataline = { 
+                'heredoc': dl.is_heredoc,
                 'executable': dl.is_executable,
                 'branch': dl.is_branch,
                 'count': dl.count,
