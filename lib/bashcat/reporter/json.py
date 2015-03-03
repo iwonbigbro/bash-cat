@@ -23,8 +23,11 @@ class JsonReporter(TotalReporter):
 
     def _generator_yield(self, event, stats, **kwargs):
         if event == 'datafile-enter':
+            df = kwargs['datafile']
+
             self._datafile = {
-                'path': kwargs['datafile'].path,
+                'path': df.path,
+                'digest': df.digest,
                 'lines': []
             }
 
