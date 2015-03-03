@@ -269,7 +269,7 @@ class DataFile(object):
             self._digest = sha.hexdigest()
 
         if not os.path.exists(self._datadir):
-            os.mkdir(self._datadir, 0700)
+            os.makedirs(self._datadir, 0700)
 
         self.sync()
         self.update(srcfile, lineno, branch, line)
@@ -325,7 +325,6 @@ class DataFile(object):
 
 
     def sync(self):
-        # Open the file with write access, creating if it doesn't exist.
         fd = os.open(self._datafile, os.O_CREAT | os.O_RDWR)
         f = os.fdopen(fd, "r+")
 

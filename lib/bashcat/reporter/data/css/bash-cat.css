@@ -61,14 +61,29 @@ code > div.executable.executed {
     background-color: #cfc;
 }
 
-code.language-bash span.esc,
-code.language-bash span.var {
-    color: purple;
+code.language-bash span.comment {
+    color: #aaa;
 }
 
-code.language-bash span.quot
-code.language-bash span.apos, {
+code.language-bash span.esc {
+    color: magenta;
+}
+code.language-bash span.var {
+    color: rgb(33, 140, 216) !important;
+}
+
+code.language-bash span.number {
+    color: #00c;
+}
+
+code.language-bash span.quot,
+code.language-bash span.apos {
     color: #c00;
+}
+
+code.language-bash span.par,
+code.language-bash span.log {
+    color: rgb(33, 140, 216);
 }
 
 code.language-bash span.par {
@@ -76,5 +91,5 @@ code.language-bash span.par {
 }
 
 code.language-bash span.bi {
-    color: blue;
+    color: rgb(229, 42, 229);
 }
