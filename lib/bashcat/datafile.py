@@ -125,7 +125,7 @@ class DataLine(object):
         # Some statements are closing statements and are just syntax
         # directives to bash.  Therefore, they do not get executed at
         # runtime and should be excluded.
-        src = re.sub(r'\s*(fi|then|else|;;|esac|in|do|done)\s*;?', r'', src).strip()
+        src = re.sub(r'\s*(then|else|esac|done|in|fi|do|;;)\s*;?', r'', src).strip()
         if not src:
             return False
 
