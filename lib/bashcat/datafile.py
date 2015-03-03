@@ -338,8 +338,6 @@ class DataFile(object):
 
 
     def update(self, srcfile, lineno, branch, line, *args, **kwargs):
-        sys.stderr.write('lineno = {0}, branch = {1}, line = {2}\n'.format(lineno, branch, line))
-
         try:
             dataline = self._lines[int(lineno)]
         except:
