@@ -61,17 +61,16 @@ class BaseReporter(object):
 
                     if line_stats['multicount'] > 0:
                         line_stats['covered'] += 1
+
+                    if dl.count > 0:
+                        line_stats['covered'] += 1
+
+                        if dl.multiline:
+                            line_stats['multicount'] = dl.count
+                        else:
+                            line_stats['multicount'] = 0
                 else:
                     line_stats['unexecutable'] += 1
-
-
-                if dl.count > 0:
-                    line_stats['covered'] += 1
-
-                    if dl.multiline:
-                        line_stats['multicount'] = dl.count
-                    else:
-                        line_stats['multicount'] = 0
 
                 yield self._generator_yield('dataline-exit', line_stats, dataline=dl)
 
