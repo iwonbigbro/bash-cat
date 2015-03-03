@@ -5,7 +5,7 @@
 function bashcat_test() {
     cat >script.sh
 
-    if [[ $BASHCAT_SHEBANG ]] ; then
+    if [[ ${BASHCAT_SHEBANG:-} ]] ; then
         chmod 755 script.sh
         ./script.sh
     else
