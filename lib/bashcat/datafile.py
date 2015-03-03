@@ -29,13 +29,10 @@ class DataLine(object):
 
         if prev is not None:
             prev._next = self
+            self._heredoc = prev.heredoc
 
         if self._source.endswith('\\'):
             self._multiline = True
-
-        m = re.search(r" <<-?'?([^']+)'?", self._source)
-        if m is not None:
-            self._heredoc = m.group(1)
 
 
     def preceding(self, filter=None):
@@ -62,8 +59,21 @@ class DataLine(object):
         raise NotFoundError("No following sibling")
 
 
-    @property
+    @cached.property
     def heredoc(self):
+        if self._heredoc is None:
+            m = re.search(r'[^<]<<-?(["\'])?(\w+)\1?', self.stripped_source)
+            if m is not None:
+                self._heredoc = m.group(2)
+                sys.stderr.write('self._heredoc = ' + repr(self._heredoc) + '\n')
+
+            return self._heredoc
+
+        # Does the here document terminate here?
+        m = re.search(r'^' + self._heredoc + '$', self.stripped_source)
+        if m is not None:
+            return None
+
         return self._heredoc
 
 
@@ -89,6 +99,11 @@ class DataLine(object):
 
 
     @cached.property
+    def is_heredoc(self):
+        return (self.heredoc is not None)
+
+
+    @cached.property
     def is_branch(self):
         src = self.stripped_source
         if not src:
@@ -101,6 +116,14 @@ class DataLine(object):
     def is_executable(self):
         src = self.stripped_source
         if not src:
+            return False
+
+        # If we are a closing statemet within a here document.
+        if self._heredoc and not self.is_heredoc:
+            return False
+
+        # Or we are within a here block.
+        if self._prev and self._prev.is_heredoc and self.is_heredoc:
             return False
 
         # Bash case statements are ayntactically heavy, with little in
