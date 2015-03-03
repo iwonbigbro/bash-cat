@@ -36,3 +36,10 @@ to start again.  This time, I will take advantage of features built into Bash
 that allow a more complex approach to tracing execution and getting feedback.
 
 Say hello to bash-cat.
+
+Screenshots
+-----------
+
+![Main view of generated HTML report](https://raw.githubusercontent.com/iwonbigbro/bash-cat/master/lib/bashcat/reporter/data/bash-cat2.png)
+
+![File view within generated HTML report](https://raw.githubusercontent.com/iwonbigbro/bash-cat/master/lib/bashcat/reporter/data/bash-cat1.png)
