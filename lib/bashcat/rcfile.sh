@@ -19,21 +19,14 @@ function bashcat_intercept() {
     local ret=$? \
           file=$1 \
           lineno=$2 \
-          statement=$3
+          statement=$3 \
+          lines=()
 
-    awk 2>/dev/null \
-        -v f="$file" \
-        -v l=$lineno \
-        -v s="$statement" \
-        -v fd=$BASHCAT_FD \
-        '
-            NR == l {
-                printf "BASHCAT:::%s:::%s:::%s:::%s:::BASHCAT\n", f, l, s, $0 >>"/dev/fd/"fd;
-                exit;
-            }
-        ' "$file" || true
-
-    return $ret
+    mapfile -O 1 lines < $file &&
+    printf >/dev/fd/$BASHCAT_FD \
+        "BASHCAT:::%s:::%s:::%s:::%s:::BASHCAT\n" \
+        "$file" "$lineno" "$statement" "${lines[$lineno]}" \
+    || true
 }
 
 set -T
