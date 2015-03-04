@@ -21,7 +21,7 @@ function bashcat_intercept() {
           lineno=$2 \
           statement=$3
 
-    awk \
+    awk 2>/dev/null \
         -v f="$file" \
         -v l=$lineno \
         -v s="$statement" \
