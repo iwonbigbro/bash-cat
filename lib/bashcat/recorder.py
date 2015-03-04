@@ -13,16 +13,17 @@ class Recorder(object):
     def __init__(self, datadir):
         self._datadir = datadir
         self._datafiles = {}
+        self._errors = {}
 
     
     def parse(self, bashcat_line):
         if not bashcat_line.startswith("BASHCAT:::") \
         and bashcat_line.endswith(":::BASHCAT"):
-            raise RecorderException("invalid line '{0}'".format(bashcat_line))
+            bashcat.output.err('Invalid line: ' + bashcat_line)
+            return
 
         info = bashcat_line.split(":::")
-        srcfile = os.path.abspath(info[1])
-        info[1] = srcfile
+        info[1] = srcfile = os.path.abspath(info[1])
 
         try:
             self._datafiles[srcfile].update(*info[1:])
@@ -36,10 +37,15 @@ class Recorder(object):
                 bashcat.datafile.DataFile(*info[1:], datadir=self._datadir)
             return
 
-        except TypeError as e:
+        except IOError as e:
+            if not self._errors.get(srcfile):
+                self._errors[srcfile] = True
+                bashcat.output.err(e)
+            pass
+
+        except Exception as e:
             bashcat.output.err(e)
-            bashcat.output.err("  line: '{0}'".format(bashcat_line))
-            raise
+            pass
 
 
     def __del__(self):
