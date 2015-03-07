@@ -21,7 +21,7 @@ will be excluded from the coverage results.
 QUOTED_HERE_DOCUMENT
 SCRIPT
 
-bashcat_test 19 9 10 2 22.2 <<'SCRIPT'
+bashcat_test 19 8 11 2 25.0 <<'SCRIPT'
 line='[BUGFIX-A/12345] {A/F2_DB/1234} Blah'
 
 [[ $line == \[BUGFIX-[A-C]/+([0-9])\]\ * ]] ||

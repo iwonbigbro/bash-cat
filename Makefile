@@ -54,13 +54,10 @@ $(BUILDROOT)/junit.xml: $(run_test_targets)
 	@rm -f $@
 	@bash tests/generate_junit.sh >$@
 
-coverage:
-	@shlcov -i $(SHCOV_DATADIR) $(BUILDROOT)/shcov/html
-
 clean_pyc:
 	@find bin lib -name '*.pyc' -exec rm $V -f {} \;
 
-clean:
+clean: clean_pyc
 	@rm $V -rf $(BUILDROOT)
 
 $(run_test_targets): run_test_% : tests/%/test.sh
