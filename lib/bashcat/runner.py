@@ -6,7 +6,7 @@ import os, sys, fcntl, select, bashcat.recorder
 
 
 LIB_BASHCAT_DIR = os.path.abspath(os.path.dirname(__file__))
-RCFILE = os.path.join(LIB_BASHCAT_DIR, 'rcfile.sh')
+HELPER = os.path.join(LIB_BASHCAT_DIR, 'helper.sh')
 
 
 class RunnerException(Exception):
@@ -67,21 +67,15 @@ class Runner(object):
 
     def executor(self, w):
         os.environ['BASHCAT_FD'] = str(w)
+        os.environ['BASH_ENV'] = HELPER
 
-        # Ensure our rcfile.sh file exists, or bash will ignore it and run the
+        # Ensure our helper.sh file exists, or bash will ignore it and run the
         # target script without our hooks in place.
-        if not os.path.exists(RCFILE):
-            raise FileNotFoundError(RCFILE)
+        if not os.path.exists(HELPER):
+            raise FileNotFoundError(HELPER)
 
         # Form the command to be executed by bash along with our init file.
-        cmd = [
-            "/bin/bash",
-                "--debugger",
-                "--noprofile",
-                "--init-file", RCFILE,
-                "-i",
-                self._script
-        ] + self._script_args
+        cmd = [ "/bin/bash", self._script ] + self._script_args
 
         # Ensure our pipe doesn't get closed on exec.
         flags = fcntl.fcntl(w, fcntl.F_GETFD)
@@ -92,7 +86,7 @@ class Runner(object):
         sys.stderr.flush()
         sys.stdout.flush()
 
-        os.execv("/bin/bash", cmd)
+        os.execve("/bin/bash", cmd, os.environ)
 
 
     def run(self):

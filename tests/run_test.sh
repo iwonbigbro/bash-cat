@@ -4,7 +4,6 @@
 
 # A simple test runner implementation.
 
-set +x
 set -Eeu
 
 run_test_sh=$(readlink -f "$BASH_SOURCE")
@@ -21,13 +20,11 @@ export TEST_ROOT=$BUILDROOT/tests/$1
 rm -rf $TEST_ROOT
 mkdir -p $TEST_ROOT
 
-PS4='+ $(date +%M:%S.%N):${BASH_SOURCE##*/}:$LINENO:${FUNCNAME:-main}()::: '
-
 function bail() {
     set +xeu
     local e=$1 ; shift
     local p="${FUNCNAME[1]^^} - $TEST_NAME${1:+ [$*]}"
-    local debug_line=$(tail -9 $TEST_ROOT/debug | head -1 | sed 's?^+.*()::: ??')
+    local debug_line=$(awk 'NR == '$TEST_LINENO' { print gensub(/^\ */, "", ""); exit }' $TEST_SOURCE)
 
     {
 
@@ -36,17 +33,11 @@ function bail() {
         exit $e
     fi
 
-    if [[ ${TEST_DEBUG:-} ]] ; then
-        echo "$p: DEBUG_BEG:"
-        cat $TEST_ROOT/debug
-        echo "$p: DEBUG_END:"
-    fi
-
     if [[ -s $TEST_ROOT/output ]] ; then
         echo "$p: OUTPUT_BEG:"
         cat $TEST_ROOT/output
         echo "$p: OUTPUT_END:"
-    elif [[ ! ${TEST_DEBUG:-} ]] ; then
+    else
         echo "$p"
     fi
 
@@ -96,25 +87,46 @@ function end_test() {
 
 function section() {
     TEST_SECTION=$1
+}
 
-    :>$TEST_ROOT/debug
+function ondebug() {
+    local e=$1 l=$2 al=$3 s=$4 c=$5 fn=$6
+
+    if [[ $e != 0 ]] ; then
+        NOTRACE=1
+    fi
+
+    if [[ ${NOTRACE:-} != 1 ]] ; then
+        TEST_STATEMENT=$c
+        TEST_ALT_LINENO=$al
+        TEST_LINENO=$l
+        TEST_SOURCE=$s
+    fi
+
+    if [[ ${TEST_DEBUG:-} ]] ; then
+        indent=$(printf "%0${#BASH_SOURCE[@]}d" 0)
+        indent=${indent//?/+}
+
+        printf >&5 "%${#indent}s %s:%s:%s(): %s\n" \
+            "$indent" "$s" "$l" "$fn" "$c"
+    fi
 }
 
 if [[ -f ${run_test_sh%/*}/run_test_functions.sh ]] ; then
     . ${run_test_sh%/*}/run_test_functions.sh
 fi
 
-exec 5>&1 1>$TEST_ROOT/output 2>&1 3>$TEST_ROOT/debug
-
-BASH_XTRACEFD=3
-set -x
+exec 5>&1 1>$TEST_ROOT/output 2>&1
 
 section "Initlisation"
 
 TEST_RESULT=1
 TEST_SETUP_RUN=
 
-trap 'e=$? ; TEST_STATEMENT=$BASH_COMMAND ; exit $e' ERR
+set -T
+shopt -s extdebug
+trap 'ondebug $? $LINENO $BASH_LINENO "$BASH_SOURCE" "$BASH_COMMAND" "${FUNCNAME:-main}"' DEBUG
+trap 'e=$? ; trap DEBUG ; exit $e' ERR
 trap 'end_test $?' EXIT
 
 cd $TEST_ROOT
