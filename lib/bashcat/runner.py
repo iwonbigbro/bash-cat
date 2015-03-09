@@ -27,6 +27,9 @@ class Runner(object):
         
     def monitor(self, r, pid):
         fr = os.fdopen(r)
+        frp = select.poll()
+        frp.register(fr, select.POLLIN)
+
         running = True
         recorder = bashcat.recorder.Recorder(self._config['data-dir'])
 
@@ -37,24 +40,26 @@ class Runner(object):
                 running = False
 
             # Wait for input...
-            if not select.select([ r ], [], [], 0.1)[0]:
-                continue
+            ready = frp.poll(0.2)
+            for fd, evt in ready:
+                if not fd or fd != fr.fileno():
+                    continue
 
-            # Use our exception handling sync interface to parse the input.
-            try:
-                bashcat_line = ""
-                for line in fr.readlines():
-                    bashcat_line += line.rstrip('\n').replace('\n', ' ')
+                # Use our exception handling sync interface to parse the input.
+                try:
+                    bashcat_line = ""
+                    for line in fr.readlines():
+                        bashcat_line += line.rstrip('\n').replace('\n', ' ')
 
-                    if bashcat_line.endswith(":::BASHCAT"):
-                        recorder.parse(bashcat_line)
-                        bashcat_line = ""
+                        if bashcat_line.endswith(":::BASHCAT"):
+                            recorder.parse(bashcat_line)
+                            bashcat_line = ""
 
-                if bashcat_line:
-                    raise Exception("Fragment found with no terminator: '{0}'".format(bashcat_line))
+                    if bashcat_line:
+                        raise Exception("Fragment found with no terminator: '{0}'".format(bashcat_line))
 
-            except IOError:
-                pass
+                except IOError:
+                    pass
 
         self._exitcode = os.WEXITSTATUS(wstatus)
         self._signum = os.WTERMSIG(wstatus)
