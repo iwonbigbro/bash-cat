@@ -3,6 +3,7 @@
 # Copyright (C) 2015 Craig Phillips.  All rights reserved.
 
 import os, sys, bashcat.datafile
+from pickle import UnpicklingError
 
 
 report_types = {}
@@ -37,8 +38,11 @@ class BaseReporter(object):
 
             try:
                 datafile = bashcat.datafile.load(abs_f)
-            except UnpickleError:
-                bashcat.output.err("failed to load: {0}".format(abs_f))
+            except Exception as e:
+                if str(e):
+                    bashcat.output.err(e)
+                else:
+                    bashcat.output.err("[{0}] skipping: {1}".format(repr(e), abs_f))
                 continue
 
             line_stats = {
@@ -78,7 +82,7 @@ class BaseReporter(object):
                 line_stats['covered%'] = (float(line_stats['covered']) / \
                     float(line_stats['executable'])) * 100.0
 
-                covered = line_stats['covered%']
+                covered += line_stats['covered%']
 
             count += 1
 
