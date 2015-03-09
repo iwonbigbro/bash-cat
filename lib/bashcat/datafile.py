@@ -2,8 +2,11 @@
 
 # Copyright (C) 2015 Craig Phillips.  All rights reserved.
 
-import fcntl, copy, os, sys, hashlib, pickle, re, string
+import fcntl, copy, os, sys, hashlib, re, string
 import cached, bashcat.output
+
+try: import cPickle as pickle
+except ImportError: import pickle
 
 
 class NotFoundError(Exception):

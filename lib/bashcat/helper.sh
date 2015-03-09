@@ -23,4 +23,4 @@ printer+=' -v s="$BASH_COMMAND"'
 printer+=' "$BASH_SOURCE"'
 
 trap "$printer" DEBUG
-unset printer BASHCAT_FD
+unset printer BASHCAT_FD BASH_ENV
