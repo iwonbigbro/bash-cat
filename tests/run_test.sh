@@ -9,6 +9,8 @@ set -Eeu
 
 run_test_sh=$(readlink -f "$BASH_SOURCE")
 
+export SRC_LIBDIR=$(readlink -f "${run_test_sh%/*/*}/lib/bashcat")
+
 export TEST_NAME=$1
 export TEST_DATE=$(date -u "+%Y%m%dT%H%M%S")
 export TEST_SCRIPT=$(readlink -f "${run_test_sh%/*}/$1/test.sh")
@@ -19,7 +21,7 @@ export TEST_ROOT=$BUILDROOT/tests/$1
 rm -rf $TEST_ROOT
 mkdir -p $TEST_ROOT
 
-export PS4='+ $(date +%M:%S.%N):${BASH_SOURCE##*/}:$LINENO:${FUNCNAME:-main}()::: '
+PS4='+ $(date +%M:%S.%N):${BASH_SOURCE##*/}:$LINENO:${FUNCNAME:-main}()::: '
 
 function bail() {
     set +xeu
